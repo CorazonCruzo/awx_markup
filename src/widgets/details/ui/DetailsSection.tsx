@@ -5,12 +5,14 @@ import {
   styled,
 } from '@mui/material';
 import { SectionTitle, FormTextField, CustomCheckbox, CustomRadio } from '../../../shared/ui';
-import { COLORS } from '../../../shared/config/theme';
+import { COLORS, BREAKPOINTS } from '../../../shared/config/theme';
 
 const Header = styled(Box)({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: 8,
   marginBottom: 20,
 });
 
@@ -53,6 +55,13 @@ const RadioLabel = styled(FormControlLabel)({
   },
   '&:first-of-type': {
     marginRight: 32,
+  },
+  marginBottom: 8,
+  '&:last-of-type': {
+    marginBottom: 0,
+  },
+  [`@media (min-width: ${BREAKPOINTS.SMALL}px)`]: {
+    marginBottom: 0,
   },
 });
 

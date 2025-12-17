@@ -1,7 +1,7 @@
 import { Box, IconButton, Typography, styled } from '@mui/material';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
-import { COLORS } from '../../config/theme';
+import { COLORS, MEDIA } from '../../config/theme';
 
 interface AmountInputProps {
   currencyName: string;
@@ -26,6 +26,9 @@ const Container = styled(Box)({
   backgroundColor: COLORS.BG_CARD,
   borderRadius: 12,
   position: 'relative',
+  [MEDIA.SMALL]: {
+    padding: '26px 6px 10px 6px',
+  },
 });
 
 const CurrencyLabel = styled(Typography)({
@@ -46,11 +49,15 @@ const StyledInput = styled('input')({
   fontFamily: 'inherit',
   backgroundColor: 'transparent',
   width: '100%',
+  minWidth: 0,
   textAlign: 'center',
   color: COLORS.TEXT_PRIMARY,
   padding: 0,
   '&:focus': {
     outline: 'none',
+  },
+  [MEDIA.SMALL]: {
+    fontSize: '13px',
   },
 });
 
@@ -66,6 +73,13 @@ const ActionButton = styled(IconButton)({
   '& .MuiSvgIcon-root': {
     fontSize: 22,
     color: COLORS.TEXT_PRIMARY,
+  },
+  [MEDIA.SMALL]: {
+    width: 24,
+    height: 24,
+    '& .MuiSvgIcon-root': {
+      fontSize: 16,
+    },
   },
 });
 
