@@ -122,6 +122,7 @@ export const AmountsSection = () => {
         setOutAmount(String(response.outAmount));
         setPrices(response.price);
         if (shouldUpdateInput) {
+          lastChanged.current = null;
           setInAmount(String(valueToSend));
         }
       })
@@ -162,6 +163,7 @@ export const AmountsSection = () => {
         setInAmount(String(response.inAmount));
         setPrices(response.price);
         if (shouldUpdateInput) {
+          lastChanged.current = null; // Сбрасываем, чтобы программное обновление не триггерило новый запрос
           setOutAmount(String(valueToSend));
         }
       })
