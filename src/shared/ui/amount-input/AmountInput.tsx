@@ -76,6 +76,15 @@ const ActionButton = styled(IconButton)({
   '&:hover': {
     backgroundColor: COLORS.BORDER_DEFAULT,
   },
+  '&.Mui-disabled': {
+    cursor: 'not-allowed',
+    pointerEvents: 'auto',
+    backgroundColor: COLORS.BG_PAGE,
+    opacity: 0.5,
+    '&:hover': {
+      backgroundColor: COLORS.BG_PAGE,
+    },
+  },
   '& .MuiSvgIcon-root': {
     fontSize: 22,
     color: COLORS.TEXT_PRIMARY,
@@ -100,6 +109,9 @@ export const AmountInput = ({
 }: AmountInputProps) => {
   const numericValue = parseFloat(value) || 0;
   const precision = getPrecisionFromStep(step);
+
+  const isDecrementDisabled = min !== undefined && roundToPrecision(numericValue - step, precision) < min;
+  const isIncrementDisabled = max !== undefined && roundToPrecision(numericValue + step, precision) > max;
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -127,7 +139,7 @@ export const AmountInput = ({
       <Container>
         <CurrencyLabel>{currencyName}, {currencyCode}</CurrencyLabel>
 
-        <ActionButton size="small" onClick={handleDecrement}>
+        <ActionButton size="small" onClick={handleDecrement} disabled={isDecrementDisabled}>
           <RemoveIcon />
         </ActionButton>
 
@@ -137,7 +149,7 @@ export const AmountInput = ({
           onChange={handleInputChange}
         />
 
-        <ActionButton size="small" onClick={handleIncrement}>
+        <ActionButton size="small" onClick={handleIncrement} disabled={isIncrementDisabled}>
           <AddIcon />
         </ActionButton>
       </Container>
