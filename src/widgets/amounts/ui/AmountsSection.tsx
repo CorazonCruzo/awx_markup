@@ -147,7 +147,7 @@ export const AmountsSection = () => {
       <SectionTitle>Объемы</SectionTitle>
 
       <ContentWrapper isLoading={isLoading}>
-        {isLoading && <LoadingOverlay text="Вычисляем курс..." backgroundColor={COLORS.BG_PAGE} />}
+        {isLoading && <LoadingOverlay text="Вычисляем количество рублей по текущему курсу" backgroundColor={COLORS.BG_PAGE} />}
 
         <LabelsRow>
           <Typography variant="subtitle2">
