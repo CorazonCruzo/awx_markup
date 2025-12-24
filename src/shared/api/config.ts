@@ -12,4 +12,5 @@ export const EXCHANGE_FORM_CONFIG = {
   outAmount: {
     step: 0.000001,
   },
+  debounceDelay: 300,
 } as const;
