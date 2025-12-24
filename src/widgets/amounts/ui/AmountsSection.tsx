@@ -32,7 +32,6 @@ export const AmountsSection = () => {
           currencyName="Ethereum"
           currencyCode="ETH"
           value="1 300.00000"
-          isSelected
         />
         <AmountInput
           currencyName="Рубль"

@@ -7,16 +7,16 @@ interface AmountInputProps {
   currencyName: string;
   currencyCode: string;
   value: string;
-  isSelected?: boolean;
 }
 
-const Wrapper = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'isSelected',
-})<{ isSelected?: boolean }>(({ isSelected }) => ({
+const Wrapper = styled(Box)({
   flex: 1,
-  outline: isSelected ? `3px solid ${COLORS.BORDER_FOCUS}` : 'none',
+  outline: 'none',
   outlineOffset: 0,
-}));
+  '&:focus-within': {
+    outline: `3px solid ${COLORS.BORDER_FOCUS}`,
+  },
+});
 
 const Container = styled(Box)({
   display: 'flex',
@@ -87,10 +87,9 @@ export const AmountInput = ({
   currencyName,
   currencyCode,
   value,
-  isSelected = false,
 }: AmountInputProps) => {
   return (
-    <Wrapper isSelected={isSelected}>
+    <Wrapper>
       <Container>
         <CurrencyLabel>{currencyName}, {currencyCode}</CurrencyLabel>
 
