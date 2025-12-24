@@ -4,6 +4,7 @@ import { SectionTitle, AmountInput, LoadingOverlay } from '../../../shared/ui';
 import { COLORS } from '../../../shared/config/theme';
 import { EXCHANGE_FORM_CONFIG, calcExchange } from '../../../shared/api';
 import { useDebounce } from '../../../shared/hooks';
+import { roundToPrecision, getPrecisionFromStep } from '../../../shared/lib';
 
 const LabelsRow = styled(Box)({
   display: 'flex',
@@ -48,24 +49,29 @@ export const AmountsSection = () => {
   const debouncedInAmount = useDebounce(inAmount, EXCHANGE_FORM_CONFIG.debounceDelay);
   const debouncedOutAmount = useDebounce(outAmount, EXCHANGE_FORM_CONFIG.debounceDelay);
 
-  const isInAmountBelowMin = useMemo(() => {
-    if (inAmount === '') return true;
+  const inAmountStatus = useMemo(() => {
+    if (inAmount === '' || inAmount === '.') return 'empty';
     const numericValue = parseFloat(inAmount);
-    if (isNaN(numericValue)) return true;
-    return numericValue < EXCHANGE_FORM_CONFIG.inAmount.min;
+    if (isNaN(numericValue) || numericValue === 0) return 'empty';
+    if (numericValue < EXCHANGE_FORM_CONFIG.inAmount.min) return 'below_min';
+    if (numericValue > EXCHANGE_FORM_CONFIG.inAmount.max) return 'above_max';
+    return 'valid';
   }, [inAmount]);
 
+  const isInAmountEmpty = inAmountStatus === 'empty';
+
+  const outPrecision = getPrecisionFromStep(EXCHANGE_FORM_CONFIG.outAmount.step);
 
   const outAmountLimits = useMemo(() => {
-    if (!prices) return { min: undefined, max: undefined };
+    if (isInAmountEmpty || !prices) return { min: undefined, max: undefined };
 
     const rate = parseFloat(prices[0]);
 
     return {
-      min: EXCHANGE_FORM_CONFIG.inAmount.min * rate,
-      max: EXCHANGE_FORM_CONFIG.inAmount.max * rate,
+      min: roundToPrecision(EXCHANGE_FORM_CONFIG.inAmount.min * rate, outPrecision),
+      max: roundToPrecision(EXCHANGE_FORM_CONFIG.inAmount.max * rate, outPrecision),
     };
-  }, [prices]);
+  }, [prices, isInAmountEmpty, outPrecision]);
 
   useEffect(() => {
     const initialValue = EXCHANGE_FORM_CONFIG.inAmount.min;
@@ -87,15 +93,37 @@ export const AmountsSection = () => {
   useEffect(() => {
     if (lastChanged.current !== 'in') return;
 
+    if (debouncedInAmount === '' || debouncedInAmount === '.') {
+      setOutAmount('');
+      return;
+    }
+
     const numericValue = parseFloat(debouncedInAmount);
-    if (isNaN(numericValue) || numericValue === 0) return;
-    if (numericValue < EXCHANGE_FORM_CONFIG.inAmount.min) return;
+    if (isNaN(numericValue) || numericValue === 0) {
+      setOutAmount('');
+      return;
+    }
+
+    const { min, max } = EXCHANGE_FORM_CONFIG.inAmount;
+    let valueToSend = numericValue;
+    let shouldUpdateInput = false;
+
+    if (numericValue < min) {
+      valueToSend = min;
+      shouldUpdateInput = true;
+    } else if (numericValue > max) {
+      valueToSend = max;
+      shouldUpdateInput = true;
+    }
 
     setIsLoading(true);
-    calcExchange(numericValue, null)
+    calcExchange(valueToSend, null)
       .then((response) => {
         setOutAmount(String(response.outAmount));
         setPrices(response.price);
+        if (shouldUpdateInput) {
+          setInAmount(String(valueToSend));
+        }
       })
       .catch((error) => {
         console.error('Failed to calculate exchange:', error);
@@ -108,14 +136,34 @@ export const AmountsSection = () => {
   useEffect(() => {
     if (lastChanged.current !== 'out') return;
 
+    if (debouncedOutAmount === '' || debouncedOutAmount === '.') {
+      return;
+    }
+
     const numericValue = parseFloat(debouncedOutAmount);
     if (isNaN(numericValue) || numericValue === 0) return;
 
+    const { min, max } = outAmountLimits;
+
+    let valueToSend = numericValue;
+    let shouldUpdateInput = false;
+
+    if (min !== undefined && numericValue < min) {
+      valueToSend = min;
+      shouldUpdateInput = true;
+    } else if (max !== undefined && numericValue > max) {
+      valueToSend = max;
+      shouldUpdateInput = true;
+    }
+
     setIsLoading(true);
-    calcExchange(null, numericValue)
+    calcExchange(null, valueToSend)
       .then((response) => {
         setInAmount(String(response.inAmount));
         setPrices(response.price);
+        if (shouldUpdateInput) {
+          setOutAmount(String(valueToSend));
+        }
       })
       .catch((error) => {
         console.error('Failed to calculate exchange:', error);
@@ -128,13 +176,6 @@ export const AmountsSection = () => {
   const handleInAmountChange = (value: string) => {
     lastChanged.current = 'in';
     setInAmount(value);
-
-    const numericValue = parseFloat(value);
-    const isBelowMin = value === '' || isNaN(numericValue) || numericValue < EXCHANGE_FORM_CONFIG.inAmount.min;
-
-    if (isBelowMin) {
-      setOutAmount('');
-    }
   };
 
   const handleOutAmountChange = (value: string) => {
@@ -171,18 +212,22 @@ export const AmountsSection = () => {
           <AmountInput
             currencyName="Рубль"
             currencyCode="RUR"
-            value={isInAmountBelowMin ? '' : outAmount}
+            value={outAmount}
             onChange={handleOutAmountChange}
             min={outAmountLimits.min}
             max={outAmountLimits.max}
             step={EXCHANGE_FORM_CONFIG.outAmount.step}
-            disabled={isInAmountBelowMin}
           />
         </InputsContainer>
 
-        {isInAmountBelowMin && (
+        {inAmountStatus === 'below_min' && (
           <ErrorMessage>
-            Минимальная сумма: {EXCHANGE_FORM_CONFIG.inAmount.min.toLocaleString('ru-RU')}
+            Минимум для отдачи: {EXCHANGE_FORM_CONFIG.inAmount.min.toLocaleString('ru-RU')}
+          </ErrorMessage>
+        )}
+        {inAmountStatus === 'above_max' && (
+          <ErrorMessage>
+            Максимум для отдачи: {EXCHANGE_FORM_CONFIG.inAmount.max.toLocaleString('ru-RU')}
           </ErrorMessage>
         )}
       </ContentWrapper>

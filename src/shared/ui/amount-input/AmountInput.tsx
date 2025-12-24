@@ -119,37 +119,15 @@ export const AmountInput = ({
   const numericValue = parseFloat(value) || 0;
   const precision = getPrecisionFromStep(step);
 
-  const isDecrementDisabled = min !== undefined && roundToPrecision(numericValue - step, precision) < min;
+  const isDecrementDisabled =
+    numericValue <= 0 ||
+    (min !== undefined && roundToPrecision(numericValue - step, precision) < min);
   const isIncrementDisabled = max !== undefined && roundToPrecision(numericValue + step, precision) > max;
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     if (!isValidNumericInput(newValue)) return;
-
-    const num = parseFloat(newValue);
-    if (isNaN(num)) {
-      onChange(newValue);
-      return;
-    }
-
-    if (max !== undefined && num > max) {
-      onChange(String(max));
-      return;
-    }
-
-    const isDeleting = newValue.length < value.length;
-    if (isDeleting && min !== undefined && num < min) return;
-
     onChange(newValue);
-  };
-
-  const handleBlur = () => {
-    const num = parseFloat(value);
-    if (isNaN(num)) return;
-
-    if (max !== undefined && num > max) {
-      onChange(String(max));
-    }
   };
 
   const handleIncrement = () => {
@@ -180,7 +158,6 @@ export const AmountInput = ({
           type="text"
           value={value}
           onChange={handleInputChange}
-          onBlur={handleBlur}
         />
 
         <ActionButton size="small" onClick={handleIncrement} disabled={isIncrementDisabled}>
