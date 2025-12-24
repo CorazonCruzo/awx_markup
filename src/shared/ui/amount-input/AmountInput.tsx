@@ -129,7 +129,7 @@ export const AmountInput = ({
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    if (!isValidNumericInput(newValue)) return;
+    if (!isValidNumericInput(newValue, precision)) return;
     onChange(newValue);
   };
 

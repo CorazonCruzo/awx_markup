@@ -1,7 +1,17 @@
 const NUMERIC_INPUT_PATTERN = /^[0-9]*\.?[0-9]*$/;
 
-export function isValidNumericInput(value: string): boolean {
-  return NUMERIC_INPUT_PATTERN.test(value);
+export function isValidNumericInput(value: string, maxDecimals?: number): boolean {
+  if (!NUMERIC_INPUT_PATTERN.test(value)) return false;
+
+  if (maxDecimals !== undefined) {
+    const decimalIndex = value.indexOf('.');
+    if (decimalIndex !== -1) {
+      const decimals = value.length - decimalIndex - 1;
+      if (decimals > maxDecimals) return false;
+    }
+  }
+
+  return true;
 }
 
 export function getPrecisionFromStep(step: number): number {
