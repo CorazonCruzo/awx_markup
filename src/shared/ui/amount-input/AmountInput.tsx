@@ -1,12 +1,18 @@
+import { ChangeEvent } from 'react';
 import { Box, IconButton, Typography, styled } from '@mui/material';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
 import { COLORS, MEDIA } from '../../config/theme';
+import { isValidNumericInput, getPrecisionFromStep, roundToPrecision } from '../../lib';
 
 interface AmountInputProps {
   currencyName: string;
   currencyCode: string;
   value: string;
+  onChange: (value: string) => void;
+  step: number;
+  min?: number;
+  max?: number;
 }
 
 const Wrapper = styled(Box)({
@@ -87,23 +93,51 @@ export const AmountInput = ({
   currencyName,
   currencyCode,
   value,
+  onChange,
+  step,
+  min,
+  max,
 }: AmountInputProps) => {
+  const numericValue = parseFloat(value) || 0;
+  const precision = getPrecisionFromStep(step);
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    if (isValidNumericInput(newValue)) {
+      onChange(newValue);
+    }
+  };
+
+  const handleIncrement = () => {
+    const newValue = roundToPrecision(numericValue + step, precision);
+    if (max === undefined || newValue <= max) {
+      onChange(String(newValue));
+    }
+  };
+
+  const handleDecrement = () => {
+    const newValue = roundToPrecision(numericValue - step, precision);
+    if (min === undefined || newValue >= min) {
+      onChange(String(newValue));
+    }
+  };
+
   return (
     <Wrapper>
       <Container>
         <CurrencyLabel>{currencyName}, {currencyCode}</CurrencyLabel>
 
-        <ActionButton size="small">
+        <ActionButton size="small" onClick={handleDecrement}>
           <RemoveIcon />
         </ActionButton>
 
         <StyledInput
           type="text"
           value={value}
-          readOnly
+          onChange={handleInputChange}
         />
 
-        <ActionButton size="small">
+        <ActionButton size="small" onClick={handleIncrement}>
           <AddIcon />
         </ActionButton>
       </Container>

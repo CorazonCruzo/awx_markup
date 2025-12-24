@@ -1,0 +1,17 @@
+const NUMERIC_INPUT_PATTERN = /^[0-9]*\.?[0-9]*$/;
+
+export function isValidNumericInput(value: string): boolean {
+  return NUMERIC_INPUT_PATTERN.test(value);
+}
+
+export function getPrecisionFromStep(step: number): number {
+  const stepStr = step.toString();
+  const decimalIndex = stepStr.indexOf('.');
+  if (decimalIndex === -1) return 0;
+  return stepStr.length - decimalIndex - 1;
+}
+
+export function roundToPrecision(value: number, precision: number): number {
+  const factor = Math.pow(10, precision);
+  return Math.round(value * factor) / factor;
+}

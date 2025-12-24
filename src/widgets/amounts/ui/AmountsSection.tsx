@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Box, Typography, styled } from '@mui/material';
 import { SectionTitle, AmountInput } from '../../../shared/ui';
+import { EXCHANGE_FORM_CONFIG } from '../../../shared/api';
 
 const LabelsRow = styled(Box)({
   display: 'flex',
@@ -14,6 +16,9 @@ const InputsContainer = styled(Box)({
 });
 
 export const AmountsSection = () => {
+  const [inAmount, setInAmount] = useState(String(EXCHANGE_FORM_CONFIG.inAmount.min));
+  const [outAmount, setOutAmount] = useState('');
+
   return (
     <Box>
       <SectionTitle>Объемы</SectionTitle>
@@ -31,12 +36,18 @@ export const AmountsSection = () => {
         <AmountInput
           currencyName="Ethereum"
           currencyCode="ETH"
-          value="1 300.00000"
+          value={inAmount}
+          onChange={setInAmount}
+          min={EXCHANGE_FORM_CONFIG.inAmount.min}
+          max={EXCHANGE_FORM_CONFIG.inAmount.max}
+          step={EXCHANGE_FORM_CONFIG.inAmount.step}
         />
         <AmountInput
           currencyName="Рубль"
           currencyCode="RUR"
-          value="1 200.00"
+          value={outAmount}
+          onChange={setOutAmount}
+          step={EXCHANGE_FORM_CONFIG.outAmount.step}
         />
       </InputsContainer>
     </Box>
