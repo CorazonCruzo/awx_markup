@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Box, Typography, styled } from '@mui/material';
-import { SectionTitle, AmountInput } from '../../../shared/ui';
+import { SectionTitle, AmountInput, LoadingOverlay } from '../../../shared/ui';
+import { COLORS } from '../../../shared/config/theme';
 import { EXCHANGE_FORM_CONFIG, calcExchange } from '../../../shared/api';
 import { useDebounce } from '../../../shared/hooks';
 
@@ -16,12 +17,21 @@ const InputsContainer = styled(Box)({
   gap: 12,
 });
 
+const ContentWrapper = styled(Box)({
+  position: 'relative',
+});
+
+const ContentInner = styled(Box)<{ isLoading: boolean }>(({ isLoading }) => ({
+  visibility: isLoading ? 'hidden' : 'visible',
+}));
+
 type LastChanged = 'in' | 'out' | null;
 
 export const AmountsSection = () => {
   const [inAmount, setInAmount] = useState(String(EXCHANGE_FORM_CONFIG.inAmount.min));
   const [outAmount, setOutAmount] = useState('');
   const [prices, setPrices] = useState<[string, string] | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const lastChanged = useRef<LastChanged>(null);
 
   const debouncedInAmount = useDebounce(inAmount, EXCHANGE_FORM_CONFIG.debounceDelay);
@@ -41,6 +51,7 @@ export const AmountsSection = () => {
   useEffect(() => {
     const initialValue = EXCHANGE_FORM_CONFIG.inAmount.min;
 
+    setIsLoading(true);
     calcExchange(initialValue, null)
       .then((response) => {
         setOutAmount(String(response.outAmount));
@@ -48,6 +59,9 @@ export const AmountsSection = () => {
       })
       .catch((error) => {
         console.error('Failed to load initial exchange rate:', error);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, []);
 
@@ -57,6 +71,7 @@ export const AmountsSection = () => {
     const numericValue = parseFloat(debouncedInAmount);
     if (isNaN(numericValue) || numericValue === 0) return;
 
+    setIsLoading(true);
     calcExchange(numericValue, null)
       .then((response) => {
         setOutAmount(String(response.outAmount));
@@ -64,6 +79,9 @@ export const AmountsSection = () => {
       })
       .catch((error) => {
         console.error('Failed to calculate exchange:', error);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, [debouncedInAmount]);
 
@@ -73,6 +91,7 @@ export const AmountsSection = () => {
     const numericValue = parseFloat(debouncedOutAmount);
     if (isNaN(numericValue) || numericValue === 0) return;
 
+    setIsLoading(true);
     calcExchange(null, numericValue)
       .then((response) => {
         setInAmount(String(response.inAmount));
@@ -80,6 +99,9 @@ export const AmountsSection = () => {
       })
       .catch((error) => {
         console.error('Failed to calculate exchange:', error);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, [debouncedOutAmount]);
 
@@ -97,35 +119,41 @@ export const AmountsSection = () => {
     <Box>
       <SectionTitle>Объемы</SectionTitle>
 
-      <LabelsRow>
-        <Typography variant="subtitle2">
-          Отдаете (лот 1000)
-        </Typography>
-        <Typography variant="subtitle2">
-          Получаете (лот 1000)
-        </Typography>
-      </LabelsRow>
+      <ContentWrapper>
+        {isLoading && <LoadingOverlay text="Вычисляем курс..." backgroundColor={COLORS.BG_PAGE} />}
 
-      <InputsContainer>
-        <AmountInput
-          currencyName="Ethereum"
-          currencyCode="ETH"
-          value={inAmount}
-          onChange={handleInAmountChange}
-          min={EXCHANGE_FORM_CONFIG.inAmount.min}
-          max={EXCHANGE_FORM_CONFIG.inAmount.max}
-          step={EXCHANGE_FORM_CONFIG.inAmount.step}
-        />
-        <AmountInput
-          currencyName="Рубль"
-          currencyCode="RUR"
-          value={outAmount}
-          onChange={handleOutAmountChange}
-          min={outAmountLimits.min}
-          max={outAmountLimits.max}
-          step={EXCHANGE_FORM_CONFIG.outAmount.step}
-        />
-      </InputsContainer>
+        <ContentInner isLoading={isLoading}>
+          <LabelsRow>
+            <Typography variant="subtitle2">
+              Отдаете (лот 1000)
+            </Typography>
+            <Typography variant="subtitle2">
+              Получаете (лот 1000)
+            </Typography>
+          </LabelsRow>
+
+          <InputsContainer>
+            <AmountInput
+              currencyName="Ethereum"
+              currencyCode="ETH"
+              value={inAmount}
+              onChange={handleInAmountChange}
+              min={EXCHANGE_FORM_CONFIG.inAmount.min}
+              max={EXCHANGE_FORM_CONFIG.inAmount.max}
+              step={EXCHANGE_FORM_CONFIG.inAmount.step}
+            />
+            <AmountInput
+              currencyName="Рубль"
+              currencyCode="RUR"
+              value={outAmount}
+              onChange={handleOutAmountChange}
+              min={outAmountLimits.min}
+              max={outAmountLimits.max}
+              step={EXCHANGE_FORM_CONFIG.outAmount.step}
+            />
+          </InputsContainer>
+        </ContentInner>
+      </ContentWrapper>
     </Box>
   );
 };

@@ -4,3 +4,4 @@ export { FormTextField } from './form-text-field';
 export { CustomCheckbox } from './custom-checkbox';
 export { CustomRadio } from './custom-radio';
 export { EditIcon } from './icons';
+export { LoadingOverlay } from './loading-overlay';
