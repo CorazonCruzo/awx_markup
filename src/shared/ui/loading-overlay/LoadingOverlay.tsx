@@ -5,7 +5,9 @@ interface LoadingOverlayProps {
   backgroundColor?: string;
 }
 
-const Container = styled(Box)<{ bgColor?: string }>(({ bgColor }) => ({
+const Container = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'bgColor',
+})<{ bgColor?: string }>(({ bgColor }) => ({
   position: 'absolute',
   top: 0,
   left: 0,

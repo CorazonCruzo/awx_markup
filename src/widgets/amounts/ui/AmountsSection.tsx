@@ -24,7 +24,9 @@ const ErrorMessage = styled(Typography)({
   textAlign: 'center',
 });
 
-const ContentWrapper = styled(Box)<{ isLoading: boolean }>(({ isLoading }) => ({
+const ContentWrapper = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'isLoading',
+})<{ isLoading: boolean }>(({ isLoading }) => ({
   position: 'relative',
   ...(isLoading && {
     '& *': {

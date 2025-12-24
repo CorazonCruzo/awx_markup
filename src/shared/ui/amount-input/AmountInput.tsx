@@ -16,7 +16,9 @@ interface AmountInputProps {
   disabled?: boolean;
 }
 
-const Wrapper = styled(Box)<{ disabled?: boolean }>(({ disabled }) => ({
+const Wrapper = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'disabled',
+})<{ disabled?: boolean }>(({ disabled }) => ({
   flex: 1,
   outline: 'none',
   outlineOffset: 0,
