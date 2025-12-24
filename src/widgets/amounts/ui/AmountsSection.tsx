@@ -53,11 +53,6 @@ export const AmountsSection = () => {
     return numericValue < EXCHANGE_FORM_CONFIG.inAmount.min;
   }, [inAmount]);
 
-  useEffect(() => {
-    if (isInAmountBelowMin) {
-      setOutAmount('');
-    }
-  }, [isInAmountBelowMin]);
 
   const outAmountLimits = useMemo(() => {
     if (!prices) return { min: undefined, max: undefined };
@@ -89,10 +84,10 @@ export const AmountsSection = () => {
 
   useEffect(() => {
     if (lastChanged.current !== 'in') return;
-    if (isInAmountBelowMin) return;
 
     const numericValue = parseFloat(debouncedInAmount);
     if (isNaN(numericValue) || numericValue === 0) return;
+    if (numericValue < EXCHANGE_FORM_CONFIG.inAmount.min) return;
 
     setIsLoading(true);
     calcExchange(numericValue, null)
@@ -106,7 +101,7 @@ export const AmountsSection = () => {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [debouncedInAmount, isInAmountBelowMin]);
+  }, [debouncedInAmount]);
 
   useEffect(() => {
     if (lastChanged.current !== 'out') return;
@@ -131,6 +126,13 @@ export const AmountsSection = () => {
   const handleInAmountChange = (value: string) => {
     lastChanged.current = 'in';
     setInAmount(value);
+
+    const numericValue = parseFloat(value);
+    const isBelowMin = value === '' || isNaN(numericValue) || numericValue < EXCHANGE_FORM_CONFIG.inAmount.min;
+
+    if (isBelowMin) {
+      setOutAmount('');
+    }
   };
 
   const handleOutAmountChange = (value: string) => {
@@ -167,7 +169,7 @@ export const AmountsSection = () => {
           <AmountInput
             currencyName="Рубль"
             currencyCode="RUR"
-            value={outAmount}
+            value={isInAmountBelowMin ? '' : outAmount}
             onChange={handleOutAmountChange}
             min={outAmountLimits.min}
             max={outAmountLimits.max}

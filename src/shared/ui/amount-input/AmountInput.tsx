@@ -153,11 +153,6 @@ export const AmountInput = ({
   const handleIncrement = () => {
     const newValue = roundToPrecision(numericValue + step, precision);
 
-    if (min !== undefined && newValue < min) {
-      onChange(String(min));
-      return;
-    }
-
     if (max === undefined || newValue <= max) {
       onChange(String(newValue));
     }
