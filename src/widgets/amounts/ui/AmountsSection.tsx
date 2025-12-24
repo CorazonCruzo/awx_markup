@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Typography, styled } from '@mui/material';
 import { SectionTitle, AmountInput } from '../../../shared/ui';
-import { EXCHANGE_FORM_CONFIG } from '../../../shared/api';
+import { EXCHANGE_FORM_CONFIG, calcExchange } from '../../../shared/api';
 
 const LabelsRow = styled(Box)({
   display: 'flex',
@@ -18,6 +18,20 @@ const InputsContainer = styled(Box)({
 export const AmountsSection = () => {
   const [inAmount, setInAmount] = useState(String(EXCHANGE_FORM_CONFIG.inAmount.min));
   const [outAmount, setOutAmount] = useState('');
+  const [prices, setPrices] = useState<[string, string] | null>(null);
+
+  useEffect(() => {
+    const initialValue = EXCHANGE_FORM_CONFIG.inAmount.min;
+
+    calcExchange(initialValue, null)
+      .then((response) => {
+        setOutAmount(String(response.outAmount));
+        setPrices(response.price);
+      })
+      .catch((error) => {
+        console.error('Failed to load initial exchange rate:', error);
+      });
+  }, []);
 
   return (
     <Box>
