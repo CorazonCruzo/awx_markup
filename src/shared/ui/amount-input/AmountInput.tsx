@@ -14,16 +14,18 @@ interface AmountInputProps {
   min?: number;
   max?: number;
   disabled?: boolean;
+  hasError?: boolean;
 }
 
 const Wrapper = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'disabled',
-})<{ disabled?: boolean }>(({ disabled }) => ({
+  shouldForwardProp: (prop) => prop !== 'disabled' && prop !== 'hasError',
+})<{ disabled?: boolean; hasError?: boolean }>(({ disabled, hasError }) => ({
   flex: 1,
-  outline: 'none',
+  outline: hasError ? `3px solid ${COLORS.ERROR}` : 'none',
   outlineOffset: 0,
+  borderRadius: 12,
   '&:focus-within': {
-    outline: disabled ? 'none' : `3px solid ${COLORS.BORDER_FOCUS}`,
+    outline: disabled ? 'none' : hasError ? `3px solid ${COLORS.ERROR}` : `3px solid ${COLORS.BORDER_FOCUS}`,
   },
   ...(disabled && {
     opacity: 0.5,
@@ -115,6 +117,7 @@ export const AmountInput = ({
   min,
   max,
   disabled,
+  hasError,
 }: AmountInputProps) => {
   const numericValue = parseFloat(value) || 0;
   const precision = getPrecisionFromStep(step);
@@ -146,7 +149,7 @@ export const AmountInput = ({
   };
 
   return (
-    <Wrapper disabled={disabled}>
+    <Wrapper disabled={disabled} hasError={hasError}>
       <Container>
         <CurrencyLabel>{currencyName}, {currencyCode}</CurrencyLabel>
 
