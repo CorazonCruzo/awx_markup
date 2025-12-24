@@ -15,3 +15,17 @@ export function roundToPrecision(value: number, precision: number): number {
   const factor = Math.pow(10, precision);
   return Math.round(value * factor) / factor;
 }
+
+export function floorToPrecision(value: number, precision: number): number {
+  const factor = Math.pow(10, precision);
+  return Math.floor(value * factor) / factor;
+}
+
+export function ceilToPrecision(value: number, precision: number): number {
+  const factor = Math.pow(10, precision);
+  return Math.ceil(value * factor) / factor;
+}
+
+export function formatWithPrecision(value: number, precision: number): string {
+  return value.toFixed(precision).replace(/\.?0+$/, '');
+}

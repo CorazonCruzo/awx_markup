@@ -1,1 +1,1 @@
-export { isValidNumericInput, getPrecisionFromStep, roundToPrecision } from './validation';
+export { isValidNumericInput, getPrecisionFromStep, roundToPrecision, floorToPrecision, ceilToPrecision, formatWithPrecision } from './validation';

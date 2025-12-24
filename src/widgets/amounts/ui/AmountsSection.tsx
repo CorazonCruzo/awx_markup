@@ -4,7 +4,7 @@ import { SectionTitle, AmountInput, LoadingOverlay } from '../../../shared/ui';
 import { COLORS } from '../../../shared/config/theme';
 import { EXCHANGE_FORM_CONFIG, calcExchange } from '../../../shared/api';
 import { useDebounce } from '../../../shared/hooks';
-import { roundToPrecision, getPrecisionFromStep } from '../../../shared/lib';
+import { getPrecisionFromStep, floorToPrecision, ceilToPrecision, formatWithPrecision } from '../../../shared/lib';
 
 const LabelsRow = styled(Box)({
   display: 'flex',
@@ -69,8 +69,8 @@ export const AmountsSection = () => {
     const rate = parseFloat(prices[0]);
 
     return {
-      min: roundToPrecision(EXCHANGE_FORM_CONFIG.inAmount.min * rate, outPrecision),
-      max: roundToPrecision(EXCHANGE_FORM_CONFIG.inAmount.max * rate, outPrecision),
+      min: floorToPrecision(EXCHANGE_FORM_CONFIG.inAmount.min * rate, outPrecision),
+      max: ceilToPrecision(EXCHANGE_FORM_CONFIG.inAmount.max * rate, outPrecision),
     };
   }, [prices, outPrecision]);
 
@@ -158,8 +158,8 @@ export const AmountsSection = () => {
 
     if (prices) {
       const rate = parseFloat(prices[0]);
-      const min = roundToPrecision(EXCHANGE_FORM_CONFIG.inAmount.min * rate, outPrecision);
-      const max = roundToPrecision(EXCHANGE_FORM_CONFIG.inAmount.max * rate, outPrecision);
+      const min = floorToPrecision(EXCHANGE_FORM_CONFIG.inAmount.min * rate, outPrecision);
+      const max = ceilToPrecision(EXCHANGE_FORM_CONFIG.inAmount.max * rate, outPrecision);
 
       if (numericValue < min || numericValue > max) {
         setInAmount('');
@@ -244,12 +244,12 @@ export const AmountsSection = () => {
         )}
         {hasOutAmountError && outAmountStatus === 'below_min' && outAmountLimits.min !== undefined && (
           <ErrorMessage>
-            Минимум для получения: {outAmountLimits.min.toLocaleString('ru-RU')}
+            Минимум для получения: {formatWithPrecision(outAmountLimits.min, outPrecision)}
           </ErrorMessage>
         )}
         {hasOutAmountError && outAmountStatus === 'above_max' && outAmountLimits.max !== undefined && (
           <ErrorMessage>
-            Максимум для получения: {outAmountLimits.max.toLocaleString('ru-RU')}
+            Максимум для получения: {formatWithPrecision(outAmountLimits.max, outPrecision)}
           </ErrorMessage>
         )}
       </ContentWrapper>
