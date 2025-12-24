@@ -17,13 +17,22 @@ const InputsContainer = styled(Box)({
   gap: 12,
 });
 
-const ContentWrapper = styled(Box)({
-  position: 'relative',
+const ErrorMessage = styled(Typography)({
+  color: COLORS.TEXT_SECONDARY,
+  fontSize: '13px',
+  marginTop: 8,
+  textAlign: 'center',
 });
 
-const ContentInner = styled(Box)<{ isLoading: boolean }>(({ isLoading }) => ({
-  visibility: isLoading ? 'hidden' : 'visible',
+const ContentWrapper = styled(Box)<{ isLoading: boolean }>(({ isLoading }) => ({
+  position: 'relative',
+  ...(isLoading && {
+    '& *': {
+      outline: 'none !important',
+    },
+  }),
 }));
+
 
 type LastChanged = 'in' | 'out' | null;
 
@@ -36,6 +45,19 @@ export const AmountsSection = () => {
 
   const debouncedInAmount = useDebounce(inAmount, EXCHANGE_FORM_CONFIG.debounceDelay);
   const debouncedOutAmount = useDebounce(outAmount, EXCHANGE_FORM_CONFIG.debounceDelay);
+
+  const isInAmountBelowMin = useMemo(() => {
+    if (inAmount === '') return true;
+    const numericValue = parseFloat(inAmount);
+    if (isNaN(numericValue)) return true;
+    return numericValue < EXCHANGE_FORM_CONFIG.inAmount.min;
+  }, [inAmount]);
+
+  useEffect(() => {
+    if (isInAmountBelowMin) {
+      setOutAmount('');
+    }
+  }, [isInAmountBelowMin]);
 
   const outAmountLimits = useMemo(() => {
     if (!prices) return { min: undefined, max: undefined };
@@ -67,6 +89,7 @@ export const AmountsSection = () => {
 
   useEffect(() => {
     if (lastChanged.current !== 'in') return;
+    if (isInAmountBelowMin) return;
 
     const numericValue = parseFloat(debouncedInAmount);
     if (isNaN(numericValue) || numericValue === 0) return;
@@ -83,7 +106,7 @@ export const AmountsSection = () => {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [debouncedInAmount]);
+  }, [debouncedInAmount, isInAmountBelowMin]);
 
   useEffect(() => {
     if (lastChanged.current !== 'out') return;
@@ -119,40 +142,45 @@ export const AmountsSection = () => {
     <Box>
       <SectionTitle>Объемы</SectionTitle>
 
-      <ContentWrapper>
+      <ContentWrapper isLoading={isLoading}>
         {isLoading && <LoadingOverlay text="Вычисляем курс..." backgroundColor={COLORS.BG_PAGE} />}
 
-        <ContentInner isLoading={isLoading}>
-          <LabelsRow>
-            <Typography variant="subtitle2">
-              Отдаете (лот 1000)
-            </Typography>
-            <Typography variant="subtitle2">
-              Получаете (лот 1000)
-            </Typography>
-          </LabelsRow>
+        <LabelsRow>
+          <Typography variant="subtitle2">
+            Отдаете (лот 1000)
+          </Typography>
+          <Typography variant="subtitle2">
+            Получаете (лот 1000)
+          </Typography>
+        </LabelsRow>
 
-          <InputsContainer>
-            <AmountInput
-              currencyName="Ethereum"
-              currencyCode="ETH"
-              value={inAmount}
-              onChange={handleInAmountChange}
-              min={EXCHANGE_FORM_CONFIG.inAmount.min}
-              max={EXCHANGE_FORM_CONFIG.inAmount.max}
-              step={EXCHANGE_FORM_CONFIG.inAmount.step}
-            />
-            <AmountInput
-              currencyName="Рубль"
-              currencyCode="RUR"
-              value={outAmount}
-              onChange={handleOutAmountChange}
-              min={outAmountLimits.min}
-              max={outAmountLimits.max}
-              step={EXCHANGE_FORM_CONFIG.outAmount.step}
-            />
-          </InputsContainer>
-        </ContentInner>
+        <InputsContainer>
+          <AmountInput
+            currencyName="Ethereum"
+            currencyCode="ETH"
+            value={inAmount}
+            onChange={handleInAmountChange}
+            min={EXCHANGE_FORM_CONFIG.inAmount.min}
+            max={EXCHANGE_FORM_CONFIG.inAmount.max}
+            step={EXCHANGE_FORM_CONFIG.inAmount.step}
+          />
+          <AmountInput
+            currencyName="Рубль"
+            currencyCode="RUR"
+            value={outAmount}
+            onChange={handleOutAmountChange}
+            min={outAmountLimits.min}
+            max={outAmountLimits.max}
+            step={EXCHANGE_FORM_CONFIG.outAmount.step}
+            disabled={isInAmountBelowMin}
+          />
+        </InputsContainer>
+
+        {isInAmountBelowMin && (
+          <ErrorMessage>
+            Минимальная сумма: {EXCHANGE_FORM_CONFIG.inAmount.min.toLocaleString('ru-RU')}
+          </ErrorMessage>
+        )}
       </ContentWrapper>
     </Box>
   );

@@ -13,16 +13,22 @@ interface AmountInputProps {
   step: number;
   min?: number;
   max?: number;
+  disabled?: boolean;
 }
 
-const Wrapper = styled(Box)({
+const Wrapper = styled(Box)<{ disabled?: boolean }>(({ disabled }) => ({
   flex: 1,
   outline: 'none',
   outlineOffset: 0,
   '&:focus-within': {
-    outline: `3px solid ${COLORS.BORDER_FOCUS}`,
+    outline: disabled ? 'none' : `3px solid ${COLORS.BORDER_FOCUS}`,
   },
-});
+  ...(disabled && {
+    opacity: 0.5,
+    pointerEvents: 'none',
+    userSelect: 'none',
+  }),
+}));
 
 const Container = styled(Box)({
   display: 'flex',
@@ -106,6 +112,7 @@ export const AmountInput = ({
   step,
   min,
   max,
+  disabled,
 }: AmountInputProps) => {
   const numericValue = parseFloat(value) || 0;
   const precision = getPrecisionFromStep(step);
@@ -115,13 +122,42 @@ export const AmountInput = ({
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    if (isValidNumericInput(newValue)) {
+    if (!isValidNumericInput(newValue)) return;
+
+    const num = parseFloat(newValue);
+    if (isNaN(num)) {
       onChange(newValue);
+      return;
+    }
+
+    if (max !== undefined && num > max) {
+      onChange(String(max));
+      return;
+    }
+
+    const isDeleting = newValue.length < value.length;
+    if (isDeleting && min !== undefined && num < min) return;
+
+    onChange(newValue);
+  };
+
+  const handleBlur = () => {
+    const num = parseFloat(value);
+    if (isNaN(num)) return;
+
+    if (max !== undefined && num > max) {
+      onChange(String(max));
     }
   };
 
   const handleIncrement = () => {
     const newValue = roundToPrecision(numericValue + step, precision);
+
+    if (min !== undefined && newValue < min) {
+      onChange(String(min));
+      return;
+    }
+
     if (max === undefined || newValue <= max) {
       onChange(String(newValue));
     }
@@ -135,7 +171,7 @@ export const AmountInput = ({
   };
 
   return (
-    <Wrapper>
+    <Wrapper disabled={disabled}>
       <Container>
         <CurrencyLabel>{currencyName}, {currencyCode}</CurrencyLabel>
 
@@ -147,6 +183,7 @@ export const AmountInput = ({
           type="text"
           value={value}
           onChange={handleInputChange}
+          onBlur={handleBlur}
         />
 
         <ActionButton size="small" onClick={handleIncrement} disabled={isIncrementDisabled}>
